@@ -4,15 +4,17 @@ from django.db import migrations
 
 import phonenumbers
 
+
 def unify_phonenumbers(apps, schema_editor):
     Flat = apps.get_model('property', 'Flat')
     for flat in Flat.objects.all():
         phone_pure = phonenumbers.parse(flat.owners_phonenumber, 'RU')
-        flat.owner_phone_pure = phonenumbers.format_number(phone_pure, phonenumbers.PhoneNumberFormat.E164)
-        flat.save()
+        if phonenumbers.is_valid_number(phone_pure):
+            flat.owner_phone_pure = phonenumbers.format_number(phone_pure, phonenumbers.PhoneNumberFormat.E164)
+            flat.save()
+
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('property', '0008_auto_20190815_1302'),
     ]
