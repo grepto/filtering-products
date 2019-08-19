@@ -25,6 +25,7 @@ class ClaimAdmin(admin.ModelAdmin):
 
 class OwnerAdmin(admin.ModelAdmin):
     list_display = ('full_name',)
+    raw_id_fields = ('owned_flats',)
 
 
 admin.site.register(Flat, FlatAdmin)
