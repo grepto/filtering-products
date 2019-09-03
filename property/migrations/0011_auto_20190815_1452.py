@@ -7,12 +7,24 @@ def make_owner(apps, schema_editor):
     Flat = apps.get_model('property', 'Flat')
     Owner = apps.get_model('property', 'Owner')
     for flat in Flat.objects.all():
-        owner = Owner.objects.create(
+        owner, _ = Owner.objects.get_or_create(
             full_name=flat.owner,
-            owners_phonenumber=flat.owners_phonenumber,
-            owner_phone_pure=flat.owner_phone_pure
+            defaults={
+                'owners_phonenumber': flat.owners_phonenumber,
+                'owner_phone_pure': flat.owner_phone_pure
+            }
         )
-        flat.owned_by.add(owner)
+        flat.owned_by.set([owner])
+
+
+def make_revert(apps, schema_editor):
+    Flat = apps.get_model('property', 'Flat')
+    Owner = apps.get_model('property', 'Owner')
+    owners = Owner.objects.all()
+    owners.delete()
+    for flat in Flat.objects.filter(owned_by__isnull=False):
+        flat.owned_by.set([])
+        flat.save()
 
 
 class Migration(migrations.Migration):
@@ -20,5 +32,5 @@ class Migration(migrations.Migration):
         ('property', '0010_owner'),
     ]
 
-    operations = [migrations.RunPython(make_owner)
-    ]
+    operations = [migrations.RunPython(make_owner, make_revert)
+                  ]
